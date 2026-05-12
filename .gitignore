@@ -1,0 +1,13 @@
+SPEC.md
+.DS_Store
+sample.py
+sample2.py
+
+# compiled binaries (anchored to root so they don't match cmd/findpass/)
+/soundsticks
+/soundsticks.exe
+/findpass
+
+cmd/
+
+.claude

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SoundSticks</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <!-- Preview nav (mock only, hidden in production) -->
+  <div id="preview-nav">
+    <button onclick="showScreen('screen-setup')">Setup</button>
+    <button onclick="showScreen('screen-searching')">Searching</button>
+    <button onclick="showScreen('screen-main')" class="active">Main</button>
+  </div>
+
+  <!-- SETUP SCREEN (shown if cert not found) -->
+  <div id="screen-setup" class="screen hidden">
+    <div class="setup-icon">⚡</div>
+    <h2 data-i18n="setup.title">One-time setup</h2>
+    <p data-i18n="setup.desc">To connect to your SoundSticks, we need to extract a security certificate from the
+      official app.</p>
+
+    <!-- Primary: APK / XAPK -->
+    <div class="file-card">
+      <div class="drop-icon">📦</div>
+      <div data-i18n-html="setup.select_apk">Select <strong>.xapk</strong></div>
+      <div class="drop-hint" data-i18n="setup.hint">HK SoundSticks app from Play Store or APKPure</div>
+      <button class="browse-btn" id="btn-browse-apk" data-i18n="setup.browse_apk">Browse file…</button>
+    </div>
+
+    <div id="setup-status" class="setup-status hidden"></div>
+  </div>
+
+  <!-- SEARCHING SCREEN -->
+  <div id="screen-searching" class="screen hidden">
+    <div class="spinner"></div>
+    <p data-i18n="searching.text">Looking for SoundSticks on your network</p>
+  </div>
+
+  <!-- MAIN SCREEN -->
+  <div id="screen-main" class="screen">
+
+    <!-- Header -->
+    <header>
+      <div class="device-info">
+        <span class="device-name" id="device-name">SoundSticks</span>
+        <span class="status-dot connected" id="status-dot"></span>
+      </div>
+      <div class="header-right">
+        <div class="vol-popup">
+          <input type="range" id="vol-slider" min="0" max="100" value="70">
+          <span class="vol-popup-val" id="vol-value">70%</span>
+        </div>
+        <span id="vol-icon" class="vol-icon"></span>
+      </div>
+    </header>
+
+    <!-- Tabs -->
+    <nav class="tabs">
+      <button class="tab active" data-tab="general" data-i18n="tab.general">General</button>
+      <button class="tab" data-tab="moment" data-i18n="tab.moment">Moment</button>
+      <button class="tab" data-tab="eq" data-i18n="tab.eq">EQ</button>
+    </nav>
+
+    <!-- GENERAL TAB -->
+    <div id="tab-general" class="tab-content active">
+
+      <div class="row-between">
+        <span class="label" data-i18n="lights.label">Lights</span>
+        <label class="toggle">
+          <input type="checkbox" id="lights-toggle" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="section" id="lights-controls">
+        <div class="label-row">
+          <span class="label" data-i18n="lights.brightness">Brightness</span>
+          <span class="value" id="brightness-value">80%</span>
+        </div>
+        <input type="range" id="brightness" min="0" max="100" value="80">
+
+        <div id="speed-section">
+          <div class="label-row">
+            <span class="label" data-i18n="lights.speed">Speed</span>
+            <span class="value" id="speed-value">2</span>
+          </div>
+          <input type="range" id="speed" min="1" max="5" value="2">
+        </div>
+
+        <div class="label-row">
+          <span class="label" data-i18n="lights.pattern">Pattern</span>
+        </div>
+        <div class="pattern-grid" id="pattern-grid">
+          <button class="pattern-btn active" data-id="1" data-i18n="pattern.ocean">Ocean</button>
+          <button class="pattern-btn" data-id="2" data-i18n="pattern.aurora">Aurora</button>
+          <button class="pattern-btn" data-id="3" data-i18n="pattern.blossom">Blossom</button>
+          <button class="pattern-btn" data-id="4" data-i18n="pattern.sunrise">Sunrise</button>
+          <button class="pattern-btn" data-id="5" data-i18n="pattern.fireplace">Fireplace</button>
+          <button class="pattern-btn" data-id="6" data-i18n="pattern.calm">Calm</button>
+          <button class="pattern-btn" data-id="7" data-i18n="pattern.nebula">Nebula</button>
+        </div>
+
+        <!-- Color picker — visible on all patterns, range varies per pattern -->
+        <div id="color-row">
+          <div class="label-row">
+            <span class="label" data-i18n="lights.color">Color</span>
+          </div>
+          <div class="color-strip-wrap">
+            <input type="range" id="color-hue" min="0" max="100" value="50" class="color-strip">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EQ TAB -->
+    <div id="tab-eq" class="tab-content">
+
+      <div class="label-row">
+        <span class="label" data-i18n="eq.preset">Preset</span>
+      </div>
+      <div class="preset-grid" id="preset-grid">
+        <button class="preset-btn active" data-id="1" data-i18n="eq.preset.signature">Signature</button>
+        <button class="preset-btn" data-id="2" data-i18n="eq.preset.vocal">Vocal</button>
+        <button class="preset-btn" data-id="3" data-i18n="eq.preset.energetic">Energetic</button>
+        <button class="preset-btn" data-id="4" data-i18n="eq.preset.chill">Chill</button>
+        <button class="preset-btn" data-id="0" data-i18n="eq.preset.custom">Custom</button>
+      </div>
+
+      <div class="label-row" style="margin-top:10px">
+        <span class="label" data-i18n="eq.custom_section">Custom</span>
+      </div>
+      <div class="preset-grid" id="custom-preset-grid">
+        <button class="preset-btn" data-slot="0">Custom 1</button>
+        <button class="preset-btn" data-slot="1">Custom 2</button>
+        <button class="preset-btn" data-slot="2">Custom 3</button>
+      </div>
+
+      <div id="custom-eq" class="hidden">
+        <div class="custom-eq-header">
+          <input class="custom-name-input" type="text" id="custom-eq-name" value="Custom 1" maxlength="24"
+            spellcheck="false">
+          <button class="link-btn" id="btn-reset-eq" data-i18n="eq.reset">Reset</button>
+        </div>
+        <div class="eq-bands" id="eq-bands">
+          <!-- Generated by JS -->
+        </div>
+        <button class="apply-btn" id="btn-apply-eq" data-i18n="eq.save">Save</button>
+      </div>
+    </div>
+
+    <!-- MOMENT TAB -->
+    <div id="tab-moment" class="tab-content">
+
+      <div class="row-between">
+        <span class="label" data-i18n="moment.label">Moment</span>
+        <label class="toggle">
+          <input type="checkbox" id="moment-toggle">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div id="moment-controls">
+        <div class="label-row">
+          <span class="label" data-i18n="moment.playtime">Play Time</span>
+        </div>
+        <div class="timer-grid">
+          <button class="timer-btn active" data-timer="0" data-i18n="moment.unlimited">Unlimited</button>
+          <button class="timer-btn" data-timer="900">15 min</button>
+          <button class="timer-btn" data-timer="1800">30 min</button>
+          <button class="timer-btn" data-timer="2700">45 min</button>
+          <button class="timer-btn" data-timer="3600">60 min</button>
+        </div>
+
+        <div class="label-row">
+          <span class="label" data-i18n="moment.mode">Mode</span>
+        </div>
+        <div class="mode-grid">
+          <button class="mode-btn active" data-id="1" data-i18n="moment.forest">Forest</button>
+          <button class="mode-btn" data-id="2" data-i18n="moment.rain">Rain</button>
+          <button class="mode-btn" data-id="3" data-i18n="moment.ocean">Ocean</button>
+          <button class="mode-btn" data-id="4" data-i18n="moment.city">City</button>
+        </div>
+
+        <div class="label-row">
+          <span class="label" id="el-label-0">Insects</span>
+          <span class="value" id="el-val-0">50%</span>
+        </div>
+        <input type="range" id="el-slider-0" min="0" max="100" value="50">
+        <div class="label-row">
+          <span class="label" id="el-label-1">Creek</span>
+          <span class="value" id="el-val-1">50%</span>
+        </div>
+        <input type="range" id="el-slider-1" min="0" max="100" value="50">
+        <div class="label-row">
+          <span class="label" id="el-label-2">Birds</span>
+          <span class="value" id="el-val-2">50%</span>
+        </div>
+        <input type="range" id="el-slider-2" min="0" max="100" value="50">
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Hidden file inputs for browser preview only -->
+  <input type="file" id="preview-apk-input" accept=".xapk" style="display:none">
+
+  <script src="app.js"></script>
+</body>
+
+</html>
