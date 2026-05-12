@@ -3,10 +3,11 @@ SPEC.md
 sample.py
 sample2.py
 
-# compiled binaries (anchored to root so they don't match cmd/findpass/)
+# compiled binaries and app bundle
 /soundsticks
 /soundsticks.exe
 /findpass
+/dist
 
 cmd/
 

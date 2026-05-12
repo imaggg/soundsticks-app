@@ -1,6 +1,6 @@
 module github.com/imaggg/soundsticks
 
-go 1.26.3
+go 1.25.0
 
 require (
 	github.com/getlantern/systray v1.2.2

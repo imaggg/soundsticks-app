@@ -40,30 +40,45 @@ Download the **Harman Kardon One** official XAPK from [APKPure](https://apkpure.
 ### macOS (tested)
 
 ```bash
-# Prerequisites: Xcode Command Line Tools, Go 1.21+
+# Prerequisites: Xcode Command Line Tools, Go 1.21+, librsvg (for icon)
 xcode-select --install
+brew install librsvg
 
-go build -o soundsticks .
-open soundsticks   # or double-click
+make mac
+open dist/SoundSticks.app
 ```
 
-The binary runs as a menu-bar (tray) app — no Dock icon.
+This builds a proper `.app` bundle in `dist/`. Double-clicking it in Finder works too — no Terminal window, no Dock icon.
+
+> Without `librsvg`, run `go build -o dist/SoundSticks.app/Contents/MacOS/SoundSticks . && cp Info.plist dist/SoundSticks.app/Contents/` to skip the icon step.
 
 ---
 
 ### Linux (untested)
 
 ```bash
-# Prerequisites
+# Prerequisites — Debian/Ubuntu
 sudo apt install golang libgtk-3-dev libwebkit2gtk-4.0-dev libayatana-appindicator3-dev zenity
-# (Fedora: gtk3-devel webkit2gtk4.0-devel libayatana-appindicator-gtk3-devel zenity)
+
+# Prerequisites — Fedora 40 and earlier
+sudo dnf install golang gtk3-devel webkit2gtk4.0-devel libayatana-appindicator-gtk3-devel zenity
+
+# Prerequisites — Fedora 41+ (webkit2gtk-4.0 replaced by 4.1)
+sudo dnf install golang gtk3-devel webkit2gtk4.1-devel libayatana-appindicator-gtk3-devel zenity
+# Create a compatibility shim so the build finds webkit2gtk-4.0:
+sudo tee /usr/local/lib/pkgconfig/webkit2gtk-4.0.pc > /dev/null << 'EOF'
+Name: webkit2gtk-4.0
+Description: shim for webkit2gtk-4.1
+Version: 2.46.0
+Requires: webkit2gtk-4.1
+EOF
 
 go build -o soundsticks .
 ./soundsticks
 ```
 
 `zenity` is only needed for the file-picker dialog on the setup screen.
-`libayatana-appindicator3` provides the system tray icon (GNOME requires the [AppIndicator extension](https://extensions.gnome.org/extension/615/appindicator-support/)).
+`libayatana-appindicator` provides the system tray icon (GNOME requires the [AppIndicator extension](https://extensions.gnome.org/extension/615/appindicator-support/)).
 
 ---
 
