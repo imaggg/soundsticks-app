@@ -18,3 +18,4 @@ func initLanguage(lang string)             {}
 func initTheme(theme string)               {}
 func setAutostartEnabled(v bool)           {}
 func setLedKeepAliveObjC(minutes int)      {}
+func setTrayDeviceIP(ip string)            {}

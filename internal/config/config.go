@@ -17,6 +17,7 @@ type Config struct {
 	Language      string          `json:"language,omitempty"`
 	LedKeepAlive  int             `json:"led_keep_alive,omitempty"` // 0=off, 30, 60 (minutes)
 	Theme         string          `json:"theme,omitempty"`           // "light", "dark", "auto"
+	DeviceIP      string          `json:"device_ip,omitempty"`       // last-known speaker IP, tried before mDNS
 }
 
 func (c *Config) initDefaults() {

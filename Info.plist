@@ -14,9 +14,9 @@
   <key>CFBundleDisplayName</key>
   <string>SoundSticks</string>
   <key>CFBundleVersion</key>
-  <string>1.0</string>
+  <string>1.1.0</string>
   <key>CFBundleShortVersionString</key>
-  <string>1.0</string>
+  <string>1.1.0</string>
   <key>CFBundlePackageType</key>
   <string>APPL</string>
   <!-- Tray-only app: no Dock icon, no app switcher entry -->
@@ -24,5 +24,11 @@
   <true/>
   <key>NSHighResolutionCapable</key>
   <true/>
+  <key>NSLocalNetworkUsageDescription</key>
+  <string>SoundSticks needs local network access to find your JBL SoundSticks speaker.</string>
+  <key>NSBonjourServices</key>
+  <array>
+    <string>_jbl-product._tcp</string>
+  </array>
 </dict>
 </plist>

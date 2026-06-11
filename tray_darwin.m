@@ -10,6 +10,8 @@
 
 extern void trayQuit(void);
 extern void trayReconnect(void);
+extern void trayConnectIP(const char *ip);
+void showConnectIPPrompt(void);
 extern void trayStatus(void);
 extern void trayInfo(void);
 extern void trayForget(void);
@@ -29,6 +31,7 @@ static NSString *_currentLang  = @"en";
 static NSString *_currentTheme = @"auto";
 static BOOL      _autostartEnabled = NO;
 static int       _ledKeepAlive = 0;
+static NSString *_deviceIP = @"";
 
 static NSString *ms(NSString *key) {
     static NSDictionary *table = nil;
@@ -37,6 +40,13 @@ static NSString *ms(NSString *key) {
         @"info":           @{@"en":@"Info",                @"es":@"Info",               @"fr":@"Info",                @"uk":@"Інфо"},
         @"language":       @{@"en":@"Language",            @"es":@"Idioma",             @"fr":@"Langue",              @"uk":@"Мова"},
         @"reconnect":      @{@"en":@"Reconnect",           @"es":@"Reconectar",         @"fr":@"Reconnecter",         @"uk":@"Перепідключитись"},
+        @"connect_ip":     @{@"en":@"Connect to IP…",      @"es":@"Conectar a IP…",     @"fr":@"Connexion par IP…",   @"uk":@"Підключитись за IP…"},
+        @"connect_ip.title":@{@"en":@"Connect to IP",      @"es":@"Conectar a IP",      @"fr":@"Connexion par IP",    @"uk":@"Підключитись за IP"},
+        @"connect_ip.msg": @{@"en":@"Enter the speaker's IP address on your network.",
+                             @"es":@"Introduce la dirección IP del altavoz en tu red.",
+                             @"fr":@"Saisissez l'adresse IP de l'enceinte sur votre réseau.",
+                             @"uk":@"Введіть IP-адресу колонки у вашій мережі."},
+        @"connect_ip.confirm":@{@"en":@"Connect",          @"es":@"Conectar",           @"fr":@"Connexion",           @"uk":@"Підключитись"},
         @"forget":         @{@"en":@"Forget Speaker", @"es":@"Olvidar Certificado",@"fr":@"Oublier le certificat",@"uk":@"Забути колонку"},
         @"quit":           @{@"en":@"Quit",    @"es":@"Salir",@"fr":@"Quitter ",@"uk":@"Вийти"},
         @"forget.title":   @{@"en":@"Forget Speaker?", @"es":@"¿Olvidar Certificado?",@"fr":@"Oublier le certificat ?",@"uk":@"Забути колонку?"},
@@ -64,6 +74,7 @@ static NSString *ms(NSString *key) {
 @implementation SSTrayDelegate
 - (void)doQuit:(id)sender      { trayQuit(); }
 - (void)doReconnect:(id)sender { trayReconnect(); }
+- (void)doConnectIP:(id)sender { showConnectIPPrompt(); }
 - (void)doStatus:(id)sender    { trayStatus(); }
 - (void)doInfo:(id)sender      { trayInfo(); }
 - (void)doForget:(id)sender    { trayForget(); }
@@ -205,6 +216,10 @@ static NSString *ms(NSString *key) {
         NSMenuItem *r = [[NSMenuItem alloc] initWithTitle:ms(@"reconnect")
             action:@selector(doReconnect:) keyEquivalent:@""];
         r.target = self; [menu addItem:r];
+
+        NSMenuItem *cip = [[NSMenuItem alloc] initWithTitle:ms(@"connect_ip")
+            action:@selector(doConnectIP:) keyEquivalent:@""];
+        cip.target = self; [menu addItem:cip];
 
         [menu addItem:[NSMenuItem separatorItem]];
 
@@ -420,6 +435,42 @@ void showForgetConfirm(void) {
         [a addButtonWithTitle:cancel];
         if ([a runModal] == NSAlertFirstButtonReturn) {
             trayForgetConfirmed();
+        }
+    });
+}
+
+// ── Manual "Connect to IP" prompt ─────────────────────────────────────────────
+
+void setDeviceIPField(const char *ip) {
+    _deviceIP = ip ? [NSString stringWithUTF8String:ip] : @"";
+}
+
+void showConnectIPPrompt(void) {
+    NSString *title   = ms(@"connect_ip.title");
+    NSString *msg     = ms(@"connect_ip.msg");
+    NSString *confirm = ms(@"connect_ip.confirm");
+    NSString *cancel  = ms(@"cancel");
+    NSString *prefill = _deviceIP ?: @"";
+    dispatch_async(dispatch_get_main_queue(), ^{
+        NSAlert *a = [[NSAlert alloc] init];
+        a.messageText     = title;
+        a.informativeText = msg;
+        [a addButtonWithTitle:confirm];
+        [a addButtonWithTitle:cancel];
+
+        NSTextField *input = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, 220, 24)];
+        input.stringValue        = prefill;
+        input.placeholderString  = @"192.168.1.95";
+        a.accessoryView = input;
+        [a.window setInitialFirstResponder:input];
+
+        [NSApp activateIgnoringOtherApps:YES];
+        if ([a runModal] == NSAlertFirstButtonReturn) {
+            NSString *ip = [input.stringValue
+                stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+            if (ip.length > 0) {
+                trayConnectIP(ip.UTF8String);
+            }
         }
     });
 }

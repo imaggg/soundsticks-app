@@ -14,7 +14,7 @@ Tested with app v2.5.4 and speaker firmware OneOS 3.1 (26.01.21.63.00)
 - **Moment** — on/off, 4 modes, per-mode element sliders, sleep timer (up to 60 min) _(untested)_
 - **EQ** — 5 factory presets + 3 local saved user presets
 - Light / Dark / Auto theme
-- mDNS auto-discovery — no IP configuration needed
+- mDNS auto-discovery — no IP configuration needed. The last-known IP is remembered and tried directly on every reconnect, so the app stays connected even when mDNS is flaky; **Connect to IP…** in the tray menu lets you enter the address manually if discovery ever fails.
 - LED sleep override / keep-alive _(untested)_
 - Autostart on login
 - 4 languages: English, Ukrainian, Spanish, French

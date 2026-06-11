@@ -58,6 +58,7 @@ func main() {
 	initTheme(cfg.Theme)
 	setAutostartEnabled(autostart.IsEnabled())
 	setLedKeepAliveObjC(cfg.LedKeepAlive)
+	setTrayDeviceIP(cfg.DeviceIP)
 
 	wv = webview.New(false)
 	defer wv.Destroy()
@@ -347,7 +348,7 @@ func startDiscovery() {
 		eval("showScreen('screen-setup')")
 		return
 	}
-	log.Println("discovery: cert loaded OK, starting mDNS browse")
+	log.Println("discovery: cert loaded OK")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
@@ -359,8 +360,25 @@ func startDiscovery() {
 	discoveryCxl = cancel
 	discoveryGen++
 	gen := discoveryGen
+	savedIP := cfg.DeviceIP
 	mu.Unlock()
 
+	// Fast path: try the last-known IP directly. The device almost always keeps
+	// the same DHCP lease, so this connects without touching mDNS at all — which
+	// sidesteps multicast/mDNS hiccups that otherwise need an app restart.
+	if savedIP != "" {
+		log.Printf("discovery: trying cached IP %s directly", savedIP)
+		c := api.NewClient(tlsCert, savedIP)
+		if info, err := c.GetDeviceInfo(); err == nil {
+			if finishConnect(c, savedIP, info, gen) {
+				return
+			}
+		} else {
+			log.Printf("discovery: cached IP %s unreachable, falling back to mDNS: %v", savedIP, err)
+		}
+	}
+
+	// Fallback: mDNS browse (first run, or device moved to a new IP).
 	devices, err := discovery.Browse(ctx)
 	if err != nil {
 		log.Printf("discovery: %v", err)
@@ -383,38 +401,53 @@ func startDiscovery() {
 			log.Printf("getDeviceInfo %s: %v", dev.IP, err)
 			continue
 		}
-		log.Printf("connected: %v", info)
-
-		mu.Lock()
-		if gen != discoveryGen {
-			mu.Unlock()
+		if finishConnect(c, dev.IP, info, gen) {
 			return
 		}
-		cli = c
-		mu.Unlock()
-
-		// name is nested: {"device_info": {"name": "..."}, "error_code": 0}
-		name := "SoundSticks"
-		if di, ok := info["device_info"].(map[string]interface{}); ok {
-			if n, ok := di["name"].(string); ok && n != "" {
-				name = n
-			}
-		}
-
-		state := initialState(c, name)
-		stateJSON, _ := json.Marshal(state)
-		evalf("window.updateState(%s)", stateJSON)
-		eval("showScreen('screen-main')")
-		startPolling(c)
-		mu.Lock()
-		ka := cfg.LedKeepAlive
-		mu.Unlock()
-		startLedKeepAlive(c, ka)
-		return
 	}
 
 	log.Println("discovery: timed out, no device responded")
 	eval(`document.querySelector('#screen-searching p').textContent=window.t('searching.not_found')`)
+}
+
+// finishConnect promotes a working client to the active connection: it persists
+// the IP for next time, pushes initial state to the UI, and starts polling +
+// keepalive. Returns false (without committing) if a newer discovery has
+// superseded this one, so the caller should stop.
+func finishConnect(c *api.Client, ip string, info map[string]any, gen int) bool {
+	log.Printf("connected at %s: %v", ip, info)
+
+	mu.Lock()
+	if gen != discoveryGen {
+		mu.Unlock()
+		return false
+	}
+	cli = c
+	if cfg.DeviceIP != ip {
+		cfg.DeviceIP = ip
+		if err := cfg.Save(); err != nil {
+			log.Printf("save device ip: %v", err)
+		}
+	}
+	ka := cfg.LedKeepAlive
+	mu.Unlock()
+	setTrayDeviceIP(ip)
+
+	// name is nested: {"device_info": {"name": "..."}, "error_code": 0}
+	name := "SoundSticks"
+	if di, ok := info["device_info"].(map[string]interface{}); ok {
+		if n, ok := di["name"].(string); ok && n != "" {
+			name = n
+		}
+	}
+
+	state := initialState(c, name)
+	stateJSON, _ := json.Marshal(state)
+	evalf("window.updateState(%s)", stateJSON)
+	eval("showScreen('screen-main')")
+	startPolling(c)
+	startLedKeepAlive(c, ka)
+	return true
 }
 
 func initialState(c *api.Client, deviceName string) map[string]interface{} {

@@ -51,6 +51,7 @@ func initLanguage(lang string)       {}
 func initTheme(theme string)         {}
 func setAutostartEnabled(v bool)     {}
 func setLedKeepAliveObjC(min int)    {}
+func setTrayDeviceIP(ip string)      {}
 
 func onSystrayReady() {
 	systray.SetIcon(makeTrayIcon())

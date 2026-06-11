@@ -16,6 +16,8 @@ void setLanguageMenuCheck(const char *lang);
 void setAutostartCheck(int enabled);
 void setLedKeepAliveCheck(int minutes);
 void setThemeMenuCheck(const char *theme);
+void setDeviceIPField(const char *ip);
+void showConnectIPPrompt(void);
 */
 import "C"
 
@@ -41,6 +43,31 @@ func trayReconnect() {
 	cli = nil
 	mu.Unlock()
 	go startDiscovery()
+}
+
+//export trayConnectIP
+func trayConnectIP(cIP *C.char) {
+	ip := strings.TrimSpace(C.GoString(cIP))
+	if ip == "" {
+		return
+	}
+	mu.Lock()
+	cfg.DeviceIP = ip
+	cfg.Save()
+	cli = nil
+	mu.Unlock()
+	setTrayDeviceIP(ip)
+	eval("showScreen('screen-searching')")
+	// startDiscovery now tries the cached IP directly before mDNS, so this
+	// connects straight to the entered address.
+	go startDiscovery()
+}
+
+// setTrayDeviceIP prefills the manual "Connect to IP…" dialog with the last IP.
+func setTrayDeviceIP(ip string) {
+	cstr := C.CString(ip)
+	C.setDeviceIPField(cstr)
+	C.free(unsafe.Pointer(cstr))
 }
 
 //export trayStatus
