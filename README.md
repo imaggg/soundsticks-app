@@ -6,6 +6,10 @@ Tested with app v2.5.4 and speaker firmware OneOS 3.1 (26.01.21.63.00)
 
 > **Linux & Windows builds are included but untested.**
 
+| | | |
+|---|---|---|
+| ![](assets/screenshot-1.png) | ![](assets/screenshot-2.png) | ![](assets/screenshot-3.png) |
+
 ---
 
 ## Features
